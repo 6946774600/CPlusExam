@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.exam.ExamModelItemMapper">
+
+	<resultMap type="com.cplusexam.bean.exam.ExamModelItem" id="resExamModelItem">
+		<id column="uuid" property="uuid"/>
+		<result column="exam_id" property="exam_id"/>
+		<result column="item_typeid" property="item_typeid"/>
+		<result column="item_count" property="item_count"/>
+		<result column="item_score" property="item_score"/>
+		<result column="item_counts" property="item_counts"/>
+		<result column="show_index" property="show_index"/>
+	</resultMap>
+
+
+	<!-- 进行考卷题型信息的添加  批量添加
+	public int addExamModelItems(List<ExamModelItem> lists); -->
+	<insert id="addExamModelItems" parameterType="java.util.List">
+		insert into tb_exam_modelitem values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(null,#{item.exam_id},#{item.item_typeid},#{item.item_count},#{item.item_score},#{item.item_counts},#{item.show_index})
+		</foreach>
+	</insert>
+	
+	
+	<!-- 获取指定试卷的题型信息
+	public public List<Map<String, Object>> getExamModelItemByModelId(int id); -->
+	<select id="getExamModelItemByModelId" parameterType="java.lang.Integer" resultType="map">
+		SELECT t.* , t1.itemType_name FROM tb_exam_modelitem t
+		LEFT JOIN tb_item_type t1 ON t.item_typeid  = t1.item_id
+		WHERE exam_id = #{id}
+	</select>
+
+
+	<!-- 删除当前试卷id  对应的题型的所有信息
+	public int deleteExamItem(int modelId); -->
+	<delete id="deleteExamItem" parameterType="java.lang.Integer">
+		delete from tb_exam_modelitem where exam_id = #{modelId }
+	</delete>
+
+</mapper>

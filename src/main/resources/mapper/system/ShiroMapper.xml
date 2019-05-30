@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.system.ShiroMapper">
+
+	<resultMap type="com.cplusexam.bean.system.Shiro" id="resShiro">
+		<id column="shiroId" property="shiroId"/>
+		<result column="shiroEnName" property="shiroEnName"/>
+		<result column="shiroCnName" property="shiroCnName"/>
+		<result column="remark" property="remark"/>
+	</resultMap>
+
+
+
+	<!--  获取权限信息展示页面的表格数据 
+	public List<Map<String, Object>> getShiroList(); -->
+	<select id="getShiroList" resultType="map">
+		SELECT t.*,COUNT(t2.shiroId) userNum  FROM tb_system_shiro t 
+		LEFT JOIN tb_system_user t2 ON t2.shiroId = t.shiroId
+		GROUP BY t2.shiroId
+	</select>
+	
+	
+	<!-- 根据shiroid  获取当前shiro的所有信息 
+	public Shiro getShiroById(int id); -->
+	<select id="getShiroById" resultMap="resShiro" parameterType="java.lang.Integer">
+		select * from tb_system_shiro where shiroId = #{id}
+	</select>
+	
+	
+	<!-- 根据权限id  获取该id下的所有用户信息
+	public List<Map<String, Object>> getShiroUserList(int id); -->
+	<select id="getShiroUserList" resultType="map" parameterType="java.lang.Integer">
+		
+	</select>
+	
+</mapper>

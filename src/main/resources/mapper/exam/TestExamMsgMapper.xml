@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.exam.TestExamMsgMapper"> 
+
+	<resultMap type="com.cplusexam.bean.exam.TestExamMsg" id="resTestExamMsg">
+		<id column="uuid" property="uuid"/>
+		<result column="create_user" property="create_user"/>
+		<result column="exam_name" property="exam_name"/>
+		<result column="exam_time" property="exam_time"/>
+		<result column="create_time" property="create_time"/>
+		<result column="count_score" property="count_score"/>
+		<result column="exam_score" property="exam_score"/>
+		<result column="examtest_type" property="examtest_type"/>
+	</resultMap>
+
+
+	<!-- 进行模拟考试基本信息的添加 并返回id
+	public int addTestExamMsgRetId(TestExamMsg testExamMsg); -->
+	<insert id="addTestExamMsgRetId" parameterType="testExamMsg" useGeneratedKeys="true" keyProperty="uuid">
+		insert into tb_examtest_msg values
+		(null,#{create_user},#{exam_name},#{exam_time},#{create_time},#{count_score},#{exam_score},#{examtest_type})
+	</insert>
+
+
+	<!-- 修改考题基本信息的 考试名称和时间选项  
+	public int updateTestExam4AddPage(TestExamMsg testExamMsg); -->
+	<update id="updateTestExam4AddPage" parameterType="testExamMsg">
+		update tb_examtest_msg set
+		exam_name = #{exam_name } ,
+		exam_time = #{exam_time }
+		where uuid = #{uuid }
+	</update>
+	
+	
+	 <!-- 根据id  删除当前模拟考试基本信息数据
+	public int deleteTestExamById(int id); -->
+	<delete id="deleteTestExamById" parameterType="java.lang.Integer">
+		delete from tb_examtest_msg where uuid =#{id }
+	</delete>
+	
+	
+	
+	<!-- 获取当前用户创建的所有模拟考试信息
+	public List<TestExamMsg> getTestExamMsgAll(String userId); -->
+	<select id="getTestExamMsgAll" parameterType="java.lang.String" resultMap="resTestExamMsg">
+		SELECT * FROM tb_examtest_msg where create_user = #{userId}
+	</select>
+	
+	
+	<!-- 修改模拟考卷的总分数据
+	public int updateTestExamScore(Map<String, Object> map); -->
+	<update id="updateTestExamScore" parameterType="map">
+		update tb_examtest_msg set count_score = #{score} where uuid = #{uuid }
+	</update>
+	
+	
+	<!-- 获取当前试卷id下  定义的相关习题信息
+	public List<Map<String, Object>> getTestExamItemMsg(int examtest_id); -->
+	<select id="getTestExamItemMsg" parameterType="java.lang.Integer" resultType="map">
+		SELECT t.*,t2.itemType_name FROM tb_examtest_itemmsg t
+		LEFT JOIN tb_item_type t2 ON t.item_type = t2.item_id
+		WHERE examtest_id = #{examtest_id }
+	</select>
+	
+	
+	<!-- 根据模拟考卷的id  获取该考卷的基本信息
+	public TestExamMsg getTestExamMsgById(int uuid); -->
+	<select id="getTestExamMsgById" parameterType="java.lang.Integer" resultMap="resTestExamMsg">
+		SELECT * FROM tb_examtest_msg WHERE UUID = #{uuid }
+	</select>
+	
+	<!-- 修改当前模拟考卷的考试状态
+	public int updateTestExamType(Map<String, Object> map); -->
+	<update id="updateTestExamType" parameterType="map">
+		update tb_examtest_msg set 
+		examtest_type = #{type} 
+		where uuid = #{uuid }
+	</update>
+	
+	<!--  修改当前考卷的考试剩余时间  
+	public void updateTextExamTime(Map<String, Object> map); -->
+	<update id="updateTextExamTime" parameterType="map">
+		update tb_examtest_msg set
+		exam_time = #{endTime}
+		where uuid = #{testExamId}
+	</update>
+	
+	
+	 <!-- 获取当前模拟考卷各个题型的  总分数   
+	public List<Map<String, Object>> getTestExamScoreByType(int uuid); -->
+	<select id="getTestExamScoreByType" parameterType="java.lang.Integer" resultType="map">
+		SELECT t.uuid ,t1.item_type , t1.item_score ,t2.tcount true_count ,t1.item_score*t2.tcount score  FROM tb_examtest_msg t  
+		LEFT JOIN tb_examtest_itemmsg t1 ON t.uuid = t1.examtest_id  
+		LEFT JOIN ( 
+			SELECT SUM(CASE WHEN option_tof=1 THEN 1 ELSE 0 END) tcount , item_type 
+			FROM tb_examtest_itempaper WHERE item_testid = #{uuid }
+			GROUP BY item_type
+		) t2 ON t2.item_type = t1.item_type
+		WHERE t.uuid = #{uuid }
+	</select>
+	
+	
+	<!-- 修改当前模拟考卷的考试分数信息 
+	public void updateTextExamExam_Score(Map<String, Object> map); -->
+	<update id="updateTextExamExam_Score" parameterType="map">
+		update tb_examtest_msg set
+		exam_score = #{exam_score}
+		where uuid = #{testExamId}
+	</update>
+	
+	
+	
+	
+</mapper>

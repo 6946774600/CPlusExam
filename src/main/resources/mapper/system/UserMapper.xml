@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.system.UserMapper">
+	
+	<resultMap type="com.cplusexam.bean.system.User" id="resUser">
+		<id column="loginName" property="loginName"/>
+		<result column="password" property="password"/>
+		<result column="name" property="name"/>
+		<result column="sex" property="sex"/>
+		<result column="toSchool" property="toSchool"/>
+		<result column="shiroId" property="shiroId"/>
+		<result column="gradeId" property="gradeId"/>
+		<result column="phone" property="phone"/>
+		<result column="email" property="email"/>
+	</resultMap>
+
+
+	<!-- 根据登录名 获取用户的信息  （登录名即主键）
+	public User getUserById(String loginName); -->
+	<select id="getUserById" resultMap="resUser" parameterType="java.lang.String">
+		select * from tb_system_user where loginName = #{loginName}
+	</select>
+	
+	
+	<!-- 根据登录名  获取用户的所有信息（包括权限，班级信息）
+	public Map<String, Object> getUserAllById(String loginName); -->
+	<select id="getUserAllById" resultType="map" parameterType="java.lang.String">
+		select t.*,t1.* from tb_system_user t
+		left join tb_system_shiro t1 on t.shiroId = t1.shiroId
+		where t.loginName = #{loginName}
+	</select>
+	
+	
+	<!-- 根据登录用户  获取该用户的权限信息
+	public String getUserShiroEnNameById(String loginName); -->
+	<select id="getUserShiroEnNameById" parameterType="java.lang.String" resultType="java.lang.String">
+		select t1.shiroEnName from tb_system_user t
+		left join tb_system_shiro t1 on t.shiroId = t1.shiroId
+		where t.loginName = #{loginName}
+	</select>
+	
+	
+	<!-- 获取学生信息维护页面的数据   涵盖查询功能
+	public List<Map<String, Object>> getStrudentMsg(User user); -->
+	<select id="getStrudentMsg" resultType="map">
+		SELECT t1.*,t2.gradeName gradeName,t3.shiroCnName shiroName FROM tb_system_user t1
+		LEFT JOIN tb_system_grade t2 ON t1.gradeId = t2.gradeId
+		LEFT JOIN tb_system_shiro t3 ON t3.shiroId = t1.shiroId
+		WHERE t1.shiroId = 3
+		<if test="@com.cplusexam.util.StringUtil@isNotEmpt(loginName)">
+			and loginName like '%${loginName}%'
+		</if>
+		<if test="name != null and name !=''">
+			and name like '%${name}%'
+		</if>
+		<if test="gradeId != null and gradeId !=''">
+			and t1.gradeId = #{gradeId}
+		</if>
+	</select>
+
+
+	<!-- 判断学号是否唯一
+	public int studentIdOnaly(String loginName); -->
+	<select id="studentIdOnaly" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT COUNT(loginName) FROM tb_system_user WHERE loginName = #{loginName}
+	</select>
+	
+	
+	<!-- 进行用户的添加
+	public int addUser(User user); -->
+	<insert id="addUser" parameterType="user">
+		insert into tb_system_user
+		values(#{loginName},#{password},#{name},#{sex},#{toSchool},#{shiroId},#{gradeId},#{phone},#{email})
+	</insert>
+	
+	
+	
+	<!-- 修改学生信息
+	public int updateUser(User user); -->
+	<update id="updateUser" parameterType="user">
+		update tb_system_user set 
+		name = #{name},
+		sex = #{sex},
+		toSchool = #{toSchool},
+		gradeId = #{gradeId},
+		phone = #{phone},
+		email = #{email}
+		where loginName = #{loginName}
+	</update>
+	
+	
+	<!--  根据id  删除用户信息 支持批量删除
+	public int deleteUserBuId(List<String> loginNames); -->
+	<delete id="deleteUserBuId" parameterType="list">
+		delete from tb_system_user where loginName in 
+		<foreach collection="list" item="loginName"
+                 open="(" close=")" index="index" separator=",">
+            #{loginName}
+        </foreach>
+	</delete>
+	
+	
+	<!-- 获取教师下拉框数据信息
+	public List<Map<String, Object>> getTeacherSelect(); -->
+	<select id="getTeacherSelect" resultType="map">
+		SELECT t.loginName id, t.name NAME FROM tb_system_user t WHERE t.shiroId = 2
+	</select>
+	
+	
+	<!-- 获取教师信息维护页面信息  涵盖查询 
+	public List<Map<String, Object>> getTeacherMsg(User user); -->
+	<select id="getTeacherMsg" resultType="map">
+		SELECT t1.*,t3.shiroCnName shiroName,GROUP_CONCAT(t2.gradeName) gradeNames FROM tb_system_user t1
+		LEFT JOIN tb_system_grade t2 ON t1.loginName = t2.teacherId
+		LEFT JOIN tb_system_shiro t3 ON t3.shiroId = t1.shiroId
+		WHERE t1.shiroId = 2
+		<if test="@com.cplusexam.util.StringUtil@isNotEmpt(loginName)">
+			and loginName like '%${loginName}%'
+		</if>
+		<if test="name != null and name !=''">
+			and name like '%${name}%'
+		</if>
+		GROUP BY t1.loginName
+	</select>
+	
+	
+	<!-- 根据登录用户 修改用户密码
+	public int updatePassword(Map<String, Object> map); -->
+	<update id="updatePassword" parameterType="map">
+		update tb_system_user set password = #{password}
+		where loginName = #{loginName}
+	</update>
+	
+	
+	<!-- 首页上的修改信息按钮
+	public int updateUserByHome(User user); -->
+	<update id="updateUserByHome" parameterType="user">
+		update tb_system_user set 
+		name = #{name},
+		sex = #{sex},
+		phone = #{phone},
+		email = #{email}
+		where loginName = #{loginName}
+	</update>
+</mapper>

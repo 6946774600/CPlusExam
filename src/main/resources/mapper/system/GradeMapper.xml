@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.system.GradeMapper">
+	
+	<resultMap type="com.cplusexam.bean.system.Grade" id="resGrade">
+		<id column="gradeId"  property="gradeId"/>
+		<result column="gradeName" property="gradeName"/>
+		<result column="gradeTerm" property="gradeTerm"/>
+		<result column="gradeMajor" property="gradeMajor"/>
+		<result column="teacherId" property="teacherId"/>
+		<result column="gradeRemark" property="gradeRemark"/>
+	</resultMap>
+	
+
+	
+	<!-- 获取班级信息的所有信息 
+	public List<Grade> getGradeList(); -->
+	<select id="getGradeList" resultMap="resGrade">
+		SELECT * FROM tb_system_grade
+	</select>
+	
+	<!-- 获取班级信息的所有信息  包括相关统计信息  用户班级信息维护页面
+	public List<Map<String, Object>> getGradeListAndCountUser(); -->
+	<select id="getGradeListAndCountUser" resultType="map">
+		SELECT t1.*,COUNT(t2.gradeId) countNum , t3.name teacherName ,
+		COALESCE(SUM(t2.sex=0),0) AS boyNum,
+		COALESCE(SUM(t2.sex=1),0) AS grilNum
+		FROM tb_system_grade t1
+		LEFT JOIN tb_system_user t2 ON t1.gradeId = t2.gradeId
+		LEFT JOIN tb_system_user t3 ON t3.loginName = t1.teacherId
+		GROUP BY t1.gradeId 
+	</select>
+
+
+
+	<!-- 判断输入的班级id是否已经存在
+	public int gradeIdOnaly(String gradeId); -->
+	<select id="gradeIdOnaly" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(gradeId) from tb_system_grade where gradeId = #{gradeId}
+	</select>
+
+
+
+	<!-- 添加班级信息
+	public int addGrade(Grade grade); -->
+	<insert id="addGrade" parameterType="grade">
+		insert into tb_system_grade 
+		values(#{gradeId},#{gradeName},#{gradeTerm},#{gradeMajor},#{teacherId},#{gradeRemark})
+	</insert>
+	
+	
+	<!-- 根据班级id  获取该id的班级信息
+	public Grade getGradeById(String gradeId); -->
+	<select id="getGradeById" resultMap="resGrade" parameterType="java.lang.String">
+		select * from tb_system_grade where gradeId = #{gradeId}
+	</select>
+	
+	
+	<!-- 修改班级信息
+	public int updateGradeById(Grade grade); -->
+	<update id="updateGradeById" parameterType="grade">
+		update tb_system_grade set
+		gradeName = #{gradeName} ,
+		gradeTerm = #{gradeTerm} ,
+		gradeMajor = #{gradeMajor} ,
+		gradeRemark = #{gradeRemark} , 
+		teacherId = #{teacherId}
+		where gradeId = #{gradeId}
+	</update>
+	
+	
+	<!-- 查询当前班级id是否已经有用户再使用
+	public int getUsedGradeById(String gradeId); -->
+	<select id="getUsedGradeById" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT COUNT(t2.gradeId) FROM tb_system_grade t1
+		LEFT JOIN tb_system_user t2 ON t1.gradeId = t2.gradeId
+		WHERE t1.gradeId = #{gradeId}
+	</select>
+	
+	
+	<!-- 根据传入的多个id  删除该id对应的班级信息
+	public int deleteGradeBuIds(List<String> gradeIds); -->
+	<delete id="deleteGradeBuIds" parameterType="list">
+		delete from tb_system_grade where gradeId in
+		<foreach collection="list" item="gradeId"
+                 open="(" close=")" index="index" separator=",">
+            #{gradeId}
+        </foreach>
+	</delete>
+	
+	
+	<!-- 判断当前教师是否已经有任课班级 
+	public int getTeacherUsedById(String teacherId); -->
+	<select id="getTeacherUsedById" parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM tb_system_grade WHERE teacherId = #{teacherId}
+	</select>
+	
+	
+</mapper>

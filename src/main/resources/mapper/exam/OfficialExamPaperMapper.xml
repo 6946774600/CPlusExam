@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.exam.OfficialExamPaperMapper">
+	
+	<resultMap type="com.cplusexam.bean.exam.OfficialExamPaper" id="resOfficialExamPaper">
+		<id column="uuid" property="uuid"/>
+		<result column="examofficial_id" property="examofficial_id"/>
+		<result column="item_type" property="item_type"/>
+		<result column="item_id" property="item_id"/>
+		<result column="user_option" property="user_option"/>
+		<result column="option_tof" property="option_tof"/>
+	</resultMap>
+
+
+	<!--  * @Description: 添加考题具体信息  批量添加
+	public int addOfficialExamPapers(List<OfficialExamPaper> list); -->
+	<insert id="addOfficialExamPapers" parameterType="list">
+		insert into tb_examofficial_paper values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(null,#{item.examofficial_id},#{item.item_type},#{item.item_id},#{item.user_option},#{item.option_tof})
+		</foreach>
+	</insert>
+
+
+	<!-- 获取指定考卷 指定题型 指定题型id的用户答案 
+	public String getUserOptionOne(Map<String, Object> parm); -->
+	<select id="getUserOptionOne" parameterType="map" resultType="java.lang.String">
+		SELECT user_option FROM tb_examofficial_paper
+		WHERE examofficial_id = #{examId }
+		and item_type = #{item_type }
+		and item_id = #{item_id }
+	</select>
+	
+	
+	<!-- 修改当前具体考题的用户答案与是否正确数据
+	public int updateOfficialExamPaperUesrOption(OfficialExamPaper officialExamPaper); -->
+	<update id="updateOfficialExamPaperUesrOption" parameterType="officialExamPaper">
+		update tb_examofficial_paper 
+		set user_option = #{user_option }
+		,option_tof = #{option_tof }
+		where examofficial_id = #{examofficial_id }
+		and item_type=#{item_type }
+		and item_id = #{item_id }
+	</update>
+	
+	
+	<!-- 获取指定考卷  指定题型的完成状态信息 
+	public List<Map<String, Object>> getOfficialExamPaperOptionType(Map<String, Object> parm); -->
+	<select id="getOfficialExamPaperOptionType" parameterType="map" resultType="map">
+		SELECT item_id ,CASE WHEN user_option IS NULL THEN 0 ELSE 1 END option_type
+		FROM tb_examofficial_paper
+		WHERE examofficial_id = #{examId }
+		AND item_type = #{item_type }
+		GROUP BY UUID 
+	</select>
+
+
+	<!-- 获取当前考卷id下  所有题型的总分数
+	public int getOffifialExamscoreCByExamId(int examId); -->
+	<select id="getOffifialExamscoreCByExamId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		SELECT SUM(t.tcount) tcount FROM (
+			SELECT item_type , SUM(CASE WHEN option_tof=1 THEN 1 ELSE 0 END) tcount FROM tb_examofficial_paper 
+			WHERE examofficial_id = #{examId }
+			GROUP BY item_type
+		) t
+	</select>
+
+</mapper>

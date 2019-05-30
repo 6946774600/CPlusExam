@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.exam.StudentOfficialExamMapper">
+
+	<!-- 获取正式考试页面  正式考试信息的表格数据
+	public List<Map<String, Object>> getOfficialExamTableMsg(String userId); -->
+	<select id="getOfficialExamTableMsg" parameterType="java.lang.String" resultType="map">
+		SELECT t.* , t1.exam_name , t1.count_score ,  
+		CASE WHEN t3.item_timeid IS NULL THEN 0 ELSE 1 END bmzt,
+		<!-- 当前考试时间是否已过期 -->
+		CASE WHEN t.end_time > NOW() THEN 1 ELSE 0 END overdue
+		FROM tb_exam_time t
+		LEFT JOIN tb_exam_model t1 ON t.exam_modelid = t1.uuid
+		LEFT JOIN (
+		<!-- 获取当前用户  已经参与的正式考试信息 -->
+		SELECT item_timeid FROM tb_examofficial_msg WHERE user_id = #{userId }
+		) t3 ON t3.item_timeid = t.uuid
+		ORDER BY t.insert_time DESC
+	</select>
+
+
+	<!-- 获取正式考试页面  当前登录用户的考试信息表格数据
+	public List<Map<String, Object>> getOfficialExamUserTableMsg(String userId); -->
+	<select id="getOfficialExamUserTableMsg" parameterType="java.lang.String" resultType="map">
+		SELECT t.*,t1.start_time , t1.end_time , t1.exam_modelid , t1.name , t1. insert_time , t2.exam_name ,t2.count_score
+		FROM tb_examofficial_msg t
+		LEFT JOIN tb_exam_time t1 ON t.item_timeid = t1.uuid
+		LEFT JOIN tb_exam_model t2 ON t1.exam_modelid = t2.uuid
+		WHERE t.user_id = #{userId }
+		order BY t1.insert_time DESC , t1.start_time DESC
+	</select>
+
+
+	<!--  获取指定正式考卷  指定考题类型的考题ids
+	public List<Integer> getOfficialExamItemids(Map<String, Object> parm); -->
+	<select id="getOfficialExamItemids" parameterType="map" resultType="java.lang.Integer">
+		SELECT item_id FROM tb_examofficial_paper
+		WHERE examofficial_id = #{examId} AND item_type = #{type}
+		ORDER BY UUID
+	</select>
+
+</mapper>

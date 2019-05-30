@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.system.AdminMenuMapper">
+
+	<resultMap type="com.cplusexam.bean.system.AdminMenu" id="resAdminMenu">
+		<id column="menuId" property="menuId"/>
+		<result column="pid" property="pid"/>
+		<result column="menuName" property="menuName"/>
+		<result column="menuIcon" property="menuIcon"/>
+		<result column="menuUrl" property="menuUrl"/>
+		<result column="showIndex" property="showIndex"/>
+	</resultMap>
+
+
+	<!-- 获取pid下的所有菜单信息
+	public List<AdminMenu> getAdminMenuByPid(int pid); -->
+	<select id="getAdminMenuByPid" resultMap="resAdminMenu" parameterType="java.lang.Integer">
+		select * from tb_admin_menu  t 
+		where pid = #{pid}
+		order by showIndex
+	</select>
+
+	<!-- 查询pid是null的情况
+	public List<AdminMenu> getAdminMenuByNullPid(); -->
+	<select id="getAdminMenuByNullPid" resultMap="resAdminMenu" >
+		select * from tb_admin_menu  t 
+		where pid is null
+		order by showIndex
+	</select>
+
+</mapper>

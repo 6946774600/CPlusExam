@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.exam.TestExamItemMsgMapper">
+
+	<resultMap type="com.cplusexam.bean.exam.TestExamItemMsg" id="resTestExamItemMsg">
+		<id column="uuid" property="uuid"/>
+		<result  column="examtest_id" property="examtest_id"/>
+		<result  column="item_type" property="item_type"/>
+		<result  column="item_count" property="item_count"/>
+		<result  column="item_score" property="item_score"/>
+		<result  column="item_counts" property="item_counts"/>
+		<result  column="show_index" property="show_index"/>
+	</resultMap>
+
+
+	<!-- 批量添加模拟考试的考题信息
+	public int addTestExamTtems(List<TestExamItemMsg> list); -->
+	<insert id="addTestExamTtems" parameterType="testExamItemMsg">
+		insert into tb_examtest_itemmsg values 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(null,#{item.examtest_id},#{item.item_type},#{item.item_count},#{item.item_score},#{item.item_counts},#{item.show_index})
+		</foreach>
+	</insert>
+
+
+	<!-- 根据模拟考卷的id， 获取该id下的考题定义信息
+	public List<TestExamItemMsg> getTestExamItemMsgAllByExamId(int testExamId); -->
+	<select id="getTestExamItemMsgAllByExamId" parameterType="java.lang.Integer" resultMap="resTestExamItemMsg">
+		SELECT * FROM tb_examtest_itemmsg WHERE examtest_id = #{testExamId }
+	</select>
+
+</mapper>

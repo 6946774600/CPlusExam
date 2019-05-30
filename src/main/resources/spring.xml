@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	
+	
+	<!-- Spring 的配置文件  配置扫描的组件   该包与该包下的所有加注解的组件 都会被扫描-->
+	
+	<context:component-scan base-package="com.cplusexam"></context:component-scan>
+	
+	<!-- 配置数据源   -->
+	<!-- 引入外部配置文件 -->
+	<context:property-placeholder location="classpath:dbconfig.properties"/>
+	<bean id="pooledDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${jdbc.driverClass}"></property>
+		<property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
+		<property name="user" value="${jdbc.user}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
+	
+	
+	<!-- 配置和mybatis的整合 -->
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- mybatis的全局配置文件 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+		<!-- 数据源 -->
+		<property name="dataSource" ref="pooledDataSource"></property>
+		<!-- sql映射文件 -->
+		<property name="mapperLocations" value="classpath*:mapper/*/*.xml"></property>
+	</bean>
+	
+	<!-- 配置一个可以执行批量的sqlSession   -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactoryBean"></constructor-arg>
+		<constructor-arg name="executorType" value="BATCH"></constructor-arg>
+		<!-- <constructor-arg name="executorType" value="SIMPLE"></constructor-arg> -->
+	</bean>
+	
+	<!-- 配置扫描器 将mybatis的接口的实现配置到IOC容器中-->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 扫描所有dao接口的实现 -->
+		<property name="basePackage" value="com.cplusexam.dao"></property>	
+	</bean>
+	
+	<!-- 事务控制的配置 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 控制数据源 -->
+		<property name="dataSource" ref="pooledDataSource"></property>
+	</bean>
+	
+	<!-- 开启使用注解配置的事务  或者使用配置文件配置的事务（常用） -->
+	
+	<aop:config > 
+		<!-- 切入点表达式 -->
+		<aop:pointcut expression="execution(* com.cplusexam.service.impl.*.*.*(..))" id="txPoint"/>
+		<!-- 配置事务增强-->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint"/>
+	</aop:config>
+	
+	<!-- 配置事务如何增强 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- 所有方法都是事务方法 -->
+			<tx:method name="*"/>
+			<!-- 以get开始的所有方法 -->
+			<tx:method name="get*" read-only="true"/>
+			<tx:method name="delete*" read-only="false"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	
+	<!-- spring配置文件的核心关注点
+	
+		1. spring的配置  数据源的配置
+		2. 与mybatis的整合配置
+		3. 事务控制的配置
+	 -->
+
+
+	<!-- 进行shiro配置 -->
+	<!-- 自定义Realm -->
+	<bean id="myRealm" class="com.cplusexam.util.MyRealm"></bean>
+	
+	<!-- shiro session监听 -->
+	<bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">  
+        <property name="sessionListeners" ref="sessionListener" />  
+    </bean>  
+    <bean id="sessionListener" class="com.cplusexam.util.ShiroSessionListener"/> 
+	
+	<!-- 安全管理 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="myRealm"></property>
+		<property name="sessionManager" ref="sessionManager" /> <!-- 配置sessionListener -->
+	</bean>
+	<!--shiro过滤器     id和web.xml中的过滤器id相同-->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<!-- shiro的核心安全接口  必须属性 -->
+		<property name="securityManager" ref="securityManager"></property>
+		<!-- 登录首页 -->
+		<!-- <property name="loginUrl" value="/Login.jsp"></property> -->
+		<property name="loginUrl" value="/public/sessionLose.jsp"></property>
+		<!-- 权限认证失败的跳转页面 -->
+		<property name="unauthorizedUrl" value="/public/unauthorized.jsp"></property>
+		<!-- shiro过滤约束配置 -->
+		<property name="filterChainDefinitions">
+			<value>
+				/Login/userLogin=anon         <!-- 登录请求  不拦截 -->
+				/Login/**=authc
+				/teacher**/**=authc,roles[teacher]
+				/student**/**=authc,roles[student]
+				/admin**/**=authc,roles[admin]
+				/upload/**=anon   <!-- 上传文件请求  不拦截 -->
+			</value>
+		</property>
+	</bean>
+	<!-- 保证实现了shiro内部lifecycle函数的bean执行 -->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"></bean>
+	<!-- 配置shiro注解支持 -->
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator">
+	</bean>
+	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager"></property>
+	</bean>
+	
+	
+</beans>

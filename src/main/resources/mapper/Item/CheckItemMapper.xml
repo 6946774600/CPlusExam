@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.Item.CheckItemMapper">
+	
+	<resultMap type="com.cplusexam.bean.Item.CheckItem" id="resCheckItem">
+		<id column="uuid" property="uuid"/>
+		<result column="item_name" property="item_name"/>
+		<result column="item_imageId" property="item_imageId"/>
+		<result column="option1" property="option1"/>
+		<result column="option2" property="option2"/>
+		<result column="option3" property="option3"/>
+		<result column="option4" property="option4"/>
+		<result column="option5" property="option5"/>
+		<result column="option6" property="option6"/>
+		<result column="item_option" property="item_option"/>
+		<result column="create_time" property="create_time"/>
+		<result column="create_teacherId" property="create_teacherId"/>
+	</resultMap>
+	
+	<resultMap type="com.cplusexam.bean.Item.CheckItem" id="resCheckItemAndFile">
+		<id column="uuid" property="uuid"/>
+		<result column="item_name" property="item_name"/>
+		<result column="item_imageId" property="item_imageId"/>
+		<result column="option1" property="option1"/>
+		<result column="option2" property="option2"/>
+		<result column="option3" property="option3"/>
+		<result column="option4" property="option4"/>
+		<result column="option5" property="option5"/>
+		<result column="option6" property="option6"/>
+		<result column="item_option" property="item_option"/>
+		<result column="create_time" property="create_time"/>
+		<result column="create_teacherId" property="create_teacherId"/>
+		<association property="upLoadFile" column="item_imageId" select="com.cplusexam.dao.util.UpLoadFileMapper.getFileById"></association>
+	</resultMap>
+	
+	
+	<!-- 添加多选题操作
+	public int addCheckItem(CheckItem checkItem); -->
+	<insert id="addCheckItem" parameterType="checkItem">
+		INSERT INTO tb_item_check
+		VALUES(null,#{item_name},#{item_imageId},#{option1},#{option2},#{option3},#{option4},#{option5},#{option6},
+		#{item_option},#{create_time},#{create_teacherId})
+	</insert>
+
+
+	<!-- 获取当前教师录入的考题数量
+	public int getCountByUserId(String userId); -->
+	<select id="getCountByUserId" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT COUNT(1) FROM tb_item_check
+		WHERE create_teacherId = #{userId}
+	</select>
+
+	<!--  获取用户录入的多选题  包含文件信息
+	public List<CheckItem> getItemListForMy(String userId); -->
+	<select id="getItemListForMy" resultMap="resCheckItemAndFile" parameterType="java.lang.String">
+		select * from tb_item_check
+		where create_teacherId = #{userId}
+		order by uuid
+	</select>
+
+	
+	<!-- 获取所有的多选题数量
+	public int getItemCountForAll(); -->
+	<select id="getItemCountForAll" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM tb_item_check
+	</select>
+
+ 	
+ 	<!-- 获取所有的多选题信息 包含图片，录入用户的名称。
+	public List<Map<String, Object>> getItemListForAll(); -->
+	<select id="getItemListForAll" resultType="map">
+		SELECT t.*,t1.name ,CONCAT(t2.fileUUName,'',t2.filTemp) fileName FROM tb_item_check t
+		LEFT JOIN tb_system_user t1 ON t.create_teacherId = t1.loginName
+		LEFT JOIN tb_system_uploadfile t2 ON t.item_imageId = t2.fileId
+		ORDER BY t.uuid
+	</select>
+	
+	
+	<!-- 根据id  获取多选题的信息  包含文件信息
+	public CheckItem getItemById(int id); -->
+	<select id="getItemById" resultMap="resCheckItemAndFile" parameterType="java.lang.Integer">
+		select * from tb_item_check where uuid = #{id}
+	</select>
+	
+	
+	<!-- 修改多选题考题 
+	public int updateItem(CheckItem checkItem); -->
+	<update id="updateItem" parameterType="checkItem">
+		update tb_item_check set
+		item_name = #{item_name},
+		item_imageId = #{item_imageId},
+		option1 = #{option1} ,
+		option2 = #{option2} ,
+		option3 = #{option3} ,
+		option4 = #{option4} ,
+		option5 = #{option5} ,
+		option6 = #{option6} ,
+		item_option = #{item_option} 
+		where uuid = #{uuid} 
+	</update>
+	
+	
+	<!-- 获取指定考题  指定的选项内容
+	public String getOptionByIdAOption(Map<String, Object> map); -->
+	<select id="getOptionByIdAOption" resultType="java.lang.String" parameterType="map">
+		SELECT CONCAT_WS('&lt;br&gt;' , ${option } ) FROM tb_item_check t
+		WHERE t.uuid = #{uuid}
+	</select>
+
+
+	<!-- 随机获取指定数量的多选题  题目id
+	public List<Integer> getCheckItemRandom(int limit); -->
+	<select id="getCheckItemRandom" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+		SELECT UUID FROM tb_item_check ORDER BY RAND() LIMIT #{limit }
+	</select>
+
+</mapper>

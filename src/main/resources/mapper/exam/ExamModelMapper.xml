@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+
+
+<mapper namespace="com.cplusexam.dao.exam.ExamModelMapper">
+
+	<resultMap type="com.cplusexam.bean.exam.ExamModel" id="resExamModel">
+		<id column="uuid" property="uuid"/>
+		<result column="exam_name" property="exam_name"/>
+		<result column="create_time" property="create_time"/>
+		<result column="count_score" property="count_score"/>
+	</resultMap>
+
+
+	<!-- 添加考卷基本信息
+	public int addExamModel(ExamModel examModel); -->
+	<insert id="addExamModel" parameterType="examModel" useGeneratedKeys="true" keyProperty="uuid">
+		insert into tb_exam_model 
+		values(null,#{exam_name},#{create_time},#{count_score})
+	</insert>
+	
+	
+	<!-- 获取考卷定义的所有信息
+	public List<Map<String, Object>> getExamModelPageMsg(); -->
+	<select id="getExamModelPageMsg" resultType="map">
+		SELECT t.*,t1.item_count,t1.item_score,t1.item_counts,t1.show_index,t2.itemType_name FROM tb_exam_model t
+		LEFT JOIN tb_exam_modelitem t1 ON t.uuid = t1.exam_id
+		LEFT JOIN tb_item_type t2 ON t1.item_typeid = t2.item_id
+		ORDER BY t.uuid DESC 
+	</select>
+
+
+	<!-- 获取当前id对应的考题信息
+	public ExamModel getExamModelById(int id); -->
+	<select id="getExamModelById" resultMap="resExamModel" parameterType="java.lang.Integer">
+		SELECT * FROM tb_exam_model where uuid = #{id} 
+	</select>
+	
+	
+	<!-- 获取考题定义的所有信息
+	public List<ExamModel> getiExamModelList(); -->
+	<select id="getiExamModelList" resultMap="resExamModel">
+		SELECT * FROM tb_exam_model 
+	</select>
+	
+	
+	<!-- 删除当前id对应的考题基本信息 
+	public int deleteExamModel(int id); -->
+	<delete id="deleteExamModel" parameterType="java.lang.Integer">
+		delete from tb_exam_model where uuid = #{id}
+	</delete>
+
+</mapper>

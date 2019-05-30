@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.Item.GapItemMapper">
+
+	<resultMap type="com.cplusexam.bean.Item.GapItem" id="resGapItem">
+		<id column="uuid" property="uuid"/>
+		<result  column="item_name" property="item_name"/>
+		<result  column="item_imageId" property="item_imageId"/>
+		<result  column="item_option" property="item_option"/>
+		<result  column="create_time" property="create_time"/>
+		<result  column="create_teacherId" property="create_teacherId"/>
+	</resultMap>
+
+
+	<resultMap type="com.cplusexam.bean.Item.GapItem" id="resGapItemAndFile">
+		<id column="uuid" property="uuid"/>
+		<result  column="item_name" property="item_name"/>
+		<result  column="item_imageId" property="item_imageId"/>
+		<result  column="item_option" property="item_option"/>
+		<result  column="create_time" property="create_time"/>
+		<result  column="create_teacherId" property="create_teacherId"/>
+		<association property="upLoadFile" column="item_imageId" select="com.cplusexam.dao.util.UpLoadFileMapper.getFileById"></association>
+	</resultMap>
+
+
+	<!-- 填空题添加
+	public int addGapItem(GapItem gapItem); -->
+	<insert id="addGapItem" parameterType="gapItem">
+		insert into tb_item_gap 
+		values(null,#{item_name},#{item_imageId},#{item_option},#{create_time},#{create_teacherId})
+	</insert>
+
+	<!-- 获取当前教师录入的考题数量
+	public int getCountByUserId(String userId); -->
+	<select id="getCountByUserId" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT COUNT(1) FROM tb_item_gap
+		WHERE create_teacherId = #{userId}
+	</select>
+
+
+
+	<!-- 获取当前用户录入的填空题  包含文件信息（文件没实现 为预留）
+	public List<GapItem> getItemListForMy(String userId); -->
+	<select id="getItemListForMy" resultMap="resGapItemAndFile" parameterType="java.lang.String">
+		select * from tb_item_gap
+		where create_teacherId = #{userId}
+		order by uuid
+	</select>
+	
+	
+	<!-- 获取所有的填空题数量
+	public int getItemCountForAll(); -->
+	<select id="getItemCountForAll" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM tb_item_gap
+	</select>
+	
+	
+	<!-- 获取所有的填空题信息 包含图片，录入用户的名称。
+	public List<Map<String, Object>> getItemListForAll(); -->
+	<select id="getItemListForAll" resultType="map">
+		SELECT t.*,t1.name ,CONCAT(t2.fileUUName,'',t2.filTemp) fileName FROM tb_item_gap t
+		LEFT JOIN tb_system_user t1 ON t.create_teacherId = t1.loginName
+		LEFT JOIN tb_system_uploadfile t2 ON t.item_imageId = t2.fileId
+		ORDER BY t.uuid
+	</select>
+
+	
+	<!-- 根据id  获取填空题的信息  包含文件信息
+	public GapItem getItemById(int id); -->
+	<select id="getItemById" resultMap="resGapItemAndFile" parameterType="java.lang.Integer">
+		select * from tb_item_gap where uuid = #{id}
+	</select>
+
+	
+	<!-- 修改填空题操作
+	public int updateItem(GapItem gapItem); -->
+	<update id="updateItem" parameterType="gapItem">
+		update tb_item_gap set
+		item_name = #{item_name} ,
+		item_imageId = #{item_imageId} ,
+		item_option = #{item_option} 
+		where uuid = #{uuid}
+	</update>
+	
+	
+	<!-- 随机获取指定数量的填空题  题目id
+	public List<Integer> getGapItemRandom(int limit); -->
+	<select id="getGapItemRandom" parameterType="java.lang.Integer"  resultType="java.lang.Integer">
+		SELECT UUID FROM tb_item_gap ORDER BY RAND() LIMIT #{limit }
+	</select>
+
+</mapper>

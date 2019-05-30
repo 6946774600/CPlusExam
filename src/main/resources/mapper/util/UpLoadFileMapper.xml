@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.util.UpLoadFileMapper">
+	
+	<resultMap type="com.cplusexam.bean.util.UpLoadFile" id="resUpLoadFile">
+		<id column="fileId" property="fileId"/>
+		<result column="fileName" property="fileName"/>
+		<result column="fileUUName" property="fileUUName"/>
+		<result column="filTemp" property="filTemp"/>
+		<result column="used" property="used"/>
+		<result column="fileUrl" property="fileUrl"/>
+	</resultMap>
+	
+	
+	<!-- 添加一条文件信息   并返回文件的主键信息
+	public int addFileMsg(UpLoadFile file); -->
+	<insert id="addFileMsg" parameterType="upLoadFile" useGeneratedKeys="true" keyProperty="fileId">
+		insert into tb_system_uploadfile(fileName,fileUUName,filTemp,used,fileUrl) 
+		values (#{fileName},#{fileUUName},#{filTemp},#{used},#{fileUrl})
+	</insert>
+	
+	
+	<!-- 根据id获取该id的文件信息  
+	public UpLoadFile getFileById(int id); -->
+	<select id="getFileById" resultMap="resUpLoadFile" parameterType="java.lang.Integer">
+		select * from tb_system_uploadfile where fileId =#{id}
+	</select>
+	
+	
+	
+	<!-- 根据id  修改该id的文件使用信息字段  
+	public int updateFileUsedById(Map<String, Object> parm); -->
+	<update id="updateFileUsedById" parameterType="map">
+		update tb_system_uploadfile set 
+		used = #{used}
+		where fileId =#{fileId}
+	</update>
+	
+</mapper>

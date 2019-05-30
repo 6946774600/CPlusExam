@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.Item.ItemTypeMapper">
+
+<resultMap type="com.cplusexam.bean.Item.ItemType" id="resItemType">
+		<id column="item_id" property="item_id"/>
+		<result column="itemType_name" property="itemType_name"/>
+		<result column="show_index" property="show_index"/>
+		<result column="def_score" property="def_score"/>
+		<result column="remark" property="remark"/>
+	</resultMap>
+	
+	
+	<!-- 获取选项维护页面的数据
+	public List<Map<String, Object>> getItemTypeList(); -->
+	<select id="getItemTypeList" resultType="map">
+		SELECT t.* , (SELECT COUNT(1) FROM tb_item_radio) itemCount FROM tb_item_type t 
+		WHERE t.item_id = 1
+		UNION ALL
+		SELECT t.* , (SELECT COUNT(1) FROM tb_item_check) itemCount FROM tb_item_type t 
+		WHERE t.item_id = 2		
+		UNION ALL
+		SELECT t.* , (SELECT COUNT(1) FROM tb_item_gap) itemCount FROM tb_item_type t 
+		WHERE t.item_id = 3	
+		UNION ALL
+		SELECT t.* , (SELECT COUNT(1) FROM tb_item_judge) itemCount FROM tb_item_type t 
+		WHERE t.item_id = 4
+	</select>
+	
+
+	<!-- 修改启用禁用按钮  
+	public int updateItemShow(Map<String, Object> parm); -->
+	<update id="updateItemShow" parameterType="map">
+		update tb_item_type set
+		show_index = #{show_index}
+		where item_id = #{id}
+	</update>
+	
+	
+	<!-- 修改考题的默认分值  
+	public int updateDefScore(Map<String, Object> parm); -->
+	<update id="updateDefScore" parameterType="map">
+		update tb_item_type set
+		def_score = #{def_score}
+		where item_id = #{id}
+	</update>
+
+
+	<!-- 获取考题类型的所有信息   
+	public List<ItemType> getItemTypeAll(); -->
+	<select id="getItemTypeAll" resultMap="resItemType">
+		select * from tb_item_type
+	</select>
+	
+	
+	<!-- 获取考题类型与对应数量的echarts数据
+	public List<Map<String, Integer>> getItemTypeCountEc();  -->
+	<select id="getItemTypeCountEc" resultType="map">
+		SELECT t.itemType_name NAME, (SELECT COUNT(1) FROM tb_item_radio)  VALUE FROM tb_item_type t 
+		WHERE t.item_id = 1
+		UNION ALL
+		SELECT t.itemType_name NAME, (SELECT COUNT(1) FROM tb_item_check) VALUE FROM tb_item_type t 
+		WHERE t.item_id = 2		
+		UNION ALL
+		SELECT t.itemType_name NAME, (SELECT COUNT(1) FROM tb_item_gap) VALUE FROM tb_item_type t 
+		WHERE t.item_id = 3	
+		UNION ALL
+		SELECT t.itemType_name NAME, (SELECT COUNT(1) FROM tb_item_judge) VALUE FROM tb_item_type t 
+		WHERE t.item_id = 4
+	</select>
+	
+</mapper>

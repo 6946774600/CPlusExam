@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.Item.ItemExerciseMapper">
+
+	<resultMap type="com.cplusexam.bean.Item.ItemExercise" id="resItemExercise">
+		<id column="uuid" property="uuid"/>
+		<result column="user_id" property="user_id"/>
+		<result column="item_type" property="item_type"/>
+		<result column="item_id" property="item_id"/>
+		<result column="user_option" property="user_option"/>
+		<result column="option_tof" property="option_tof"/>
+		<result column="create_time" property="create_time"/>
+	</resultMap>
+
+
+	<!-- 获取当前用户没有练习过的单选题   只获取一道
+	public List<Map<String, Object>> getRadioItemOne(String LoginName); -->
+	<select id="getRadioItemOne" resultType="map" parameterType="java.lang.String">
+		SELECT t.*,t1.name ,CONCAT(t2.fileUUName,'',t2.filTemp) fileName FROM tb_item_radio t
+		LEFT JOIN tb_system_user t1 ON t.create_teacherId = t1.loginName
+		LEFT JOIN tb_system_uploadfile t2 ON t.item_imageId = t2.fileId
+		WHERE t.uuid NOT IN 
+			(SELECT t.item_id FROM tb_item_exercise t WHERE t.item_type =1 AND user_id =#{LoginName})
+	</select>
+	
+	
+	
+	<!-- 进行用户已练习题目的添加操作
+	public int addExercise(ItemExercise itemExercise); -->
+	<insert id="addExercise" parameterType="itemExercise">
+		insert into tb_item_exercise values
+		(null,#{user_id},#{item_type},#{item_id},#{user_option},#{option_tof},#{create_time})
+	</insert>
+	
+	
+	<!-- 获取登录用户  剩余的单选题的数量
+	public int getRadioSurplusCount(String userId); -->
+	<select id="getRadioSurplusCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT COUNT(t.uuid) FROM tb_item_radio t
+		WHERE t.uuid NOT IN (
+		SELECT t.item_id FROM tb_item_exercise t WHERE t.item_type =1 AND user_id =#{userId}
+		)
+	</select>
+	
+	
+	<!-- 删除当前 用户 指定考题的  练习历史记录
+	public int deleteExercise(Map<String, Object> map); -->
+	<delete id="deleteExercise" parameterType="map">
+		delete from tb_item_exercise
+		where user_id = #{user_id} and item_type=#{item_typeid}
+	</delete>
+	
+	
+	<!-- getExercisedCount  获取 指定用户 指定题型  已练习的数量 
+	public int getExercisedCount(Map<String, Object> map); -->
+	<select id="getExercisedCount" parameterType="map" resultType="java.lang.Integer">
+	SELECT COUNT(DISTINCT  t.item_id) FROM tb_item_exercise t 
+	WHERE user_id = #{user_id} AND item_type = #{item_typeid}
+	</select>
+	
+	
+	<!-- 获取指定用户 指定题型  正确数与错误数
+	public Map<String, Integer> getExercisedTOFEc(Map<String, Object> map); -->
+	<select id="getExercisedTOFEc" parameterType="map" resultType="map">
+		SELECT COUNT(CASE WHEN t.option_tof = 0 THEN 1 END) falseCount , 
+		COUNT(CASE WHEN t.option_tof = 1 THEN 1 END) trueCount
+		FROM tb_item_exercise t
+		WHERE user_id =  #{user_id} AND item_type = #{item_typeid}
+	</select>
+	
+	
+	<!-- 获取当前用户没有练习过的多选题   只获取一道
+	public List<Map<String, Object>> getCheckItemOne(String LoginName); -->
+	<select id="getCheckItemOne" resultType="map" parameterType="java.lang.String">
+		SELECT t.*,t1.name ,CONCAT(t2.fileUUName,'',t2.filTemp) fileName FROM tb_item_check t
+		LEFT JOIN tb_system_user t1 ON t.create_teacherId = t1.loginName
+		LEFT JOIN tb_system_uploadfile t2 ON t.item_imageId = t2.fileId
+		WHERE t.uuid NOT IN 
+			(SELECT t.item_id FROM tb_item_exercise t WHERE t.item_type =2 AND user_id =#{LoginName})
+	</select>
+	
+	
+	<!--  获取登录用户  剩余的多选题的数量
+	public int getCheckSurplusCount(String userId); -->
+	<select id="getCheckSurplusCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT COUNT(t.uuid) FROM tb_item_check t
+		WHERE t.uuid NOT IN (
+		SELECT t.item_id FROM tb_item_exercise t WHERE t.item_type =2 AND user_id =#{userId}
+		)
+	</select>
+	
+	
+	<!-- 获取当前用户没有练习过的填空题   只获取一道
+	public List<Map<String, Object>> getGapItemOne(String LoginName); -->
+	<select id="getGapItemOne" resultType="map" parameterType="java.lang.String">
+		SELECT t.*,t1.name ,CONCAT(t2.fileUUName,'',t2.filTemp) fileName FROM tb_item_gap t
+		LEFT JOIN tb_system_user t1 ON t.create_teacherId = t1.loginName
+		LEFT JOIN tb_system_uploadfile t2 ON t.item_imageId = t2.fileId
+		WHERE t.uuid NOT IN 
+			(SELECT t.item_id FROM tb_item_exercise t WHERE t.item_type =3 AND user_id =#{LoginName})
+	</select>
+	
+	
+	<!-- 获取登录用户  剩余的填空题的数量
+	public int getGapSurplusCount(String userId); -->
+	<select id="getGapSurplusCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT COUNT(t.uuid) FROM tb_item_gap t
+		WHERE t.uuid NOT IN (
+		SELECT t.item_id FROM tb_item_exercise t WHERE t.item_type =3 AND user_id =#{userId}
+		)
+	</select>
+	
+	
+	<!-- 获取当前用户没有练习过的判断题   
+	public List<Map<String, Object>> getJudgeItemOne(String LoginName); -->
+	<select id="getJudgeItemOne" resultType="map" parameterType="java.lang.String">
+		SELECT t.*,t1.name ,CONCAT(t2.fileUUName,'',t2.filTemp) fileName FROM tb_item_judge t
+		LEFT JOIN tb_system_user t1 ON t.create_teacherId = t1.loginName
+		LEFT JOIN tb_system_uploadfile t2 ON t.item_imageId = t2.fileId
+		WHERE t.uuid NOT IN 
+			(SELECT t.item_id FROM tb_item_exercise t WHERE t.item_type =4 AND user_id =#{LoginName})
+	</select>
+	
+	
+	<!-- 获取登录用户  剩余的判断题的数量
+	public int getJudgeSurplusCount(String userId); -->
+	<select id="getJudgeSurplusCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT COUNT(t.uuid) FROM tb_item_judge t
+		WHERE t.uuid NOT IN (
+		SELECT t.item_id FROM tb_item_exercise t WHERE t.item_type =4 AND user_id =#{userId}
+		)
+	</select>
+	
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.exam.OfficialExamMsgMapper">
+
+	<resultMap type="com.cplusexam.bean.exam.OfficialExamMsg" id="resOfficialExamMsg">
+		<id column="uuid" property="uuid"/>
+		<result column="item_timeid" property="item_timeid"/>
+		<result column="user_id" property="user_id"/>
+		<result column="exam_counts" property="exam_counts"/>
+		<result column="exam_type" property="exam_type"/>
+	</resultMap>
+
+
+	<!-- 进行正式考试的报名操作  ** 录入一条正式考试的基本信息
+	public int addOfficialExamMsg(OfficialExamMsg officialExamMsg); -->
+	<insert id="addOfficialExamMsg" parameterType="officialExamMsg">
+		insert into tb_examofficial_msg values
+		(null,#{item_timeid },#{user_id },#{exam_counts },#{exam_type })
+	</insert>
+
+
+	<!-- 根据id  获取当前正式考试的基本信息 
+	public OfficialExamMsg getOfficialExamMsgById(int id); -->
+	<select id="getOfficialExamMsgById" parameterType="java.lang.Integer" resultMap="resOfficialExamMsg">
+		select * from tb_examofficial_msg where uuid = #{id }
+	</select>
+
+
+	<!-- 根据id  修改当前考卷的状态信息 
+	public int updateExamType(Map<String, Object> map); -->
+	<update id="updateExamType" parameterType="map">
+		update tb_examofficial_msg set 
+		exam_type = #{type }
+		where uuid = #{id }
+	</update>
+
+
+
+	<!-- 修改指定考卷的总分数
+	public int updateExamScoreC(Map<String, Object> parm); -->
+	<update id="updateExamScoreC" parameterType="map">
+		update tb_examofficial_msg set 
+		exam_counts = #{exam_counts }
+		where uuid = #{examId }
+	</update>
+
+</mapper>

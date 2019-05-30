@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplusexam.dao.exam.ExamTimeMapper">
+
+	<resultMap type="com.cplusexam.bean.exam.ExamTime" id="resExamTime">
+		<id column="uuid" property="uuid"/>
+		<result column="name" property="name"/>
+		<result column="start_time" property="start_time"/>
+		<result column="end_time" property="end_time"/>
+		<result column="exam_modelid" property="exam_modelid"/>
+		<result column="insert_time" property="insert_time"/>
+		<result column="show_notice" property="show_notice"/>
+		<result column="notice_title" property="notice_title"/>
+		<result column="notice_msg" property="notice_msg"/>
+	</resultMap>
+
+
+	<!-- 获取考试时间维护页面的所有信息
+	public List<Map<String, Object>> getExamTimeList(); -->
+	<select id="getExamTimeList" resultType="map">
+		SELECT t.* , t1.exam_name FROM tb_exam_time t
+		LEFT JOIN tb_exam_model t1 ON t.exam_modelid = t1.uuid
+		ORDER BY t.insert_time
+	</select>
+	
+	
+	<!-- 获取当前考试信息的所有信息
+	public List<ExamTime> getExamTimeAll(); -->
+	<select id="getExamTimeAll" resultMap="resExamTime">
+		select * from tb_exam_time
+	</select>
+	
+	
+	<!-- 判断当前试卷id  有多少正式考试在使用
+	public int getExamTimeByExamModelId(int id); -->
+	<select id="getExamTimeByExamModelId" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+		SELECT COUNT(1) FROM tb_exam_time WHERE exam_modelid = #{id}
+	</select>
+	
+	
+	<!--  添加一条考试时间信息
+	public int addExamItem(ExamTime examTime); -->
+	<insert id="addExamItem" parameterType="examTime">
+		insert into tb_exam_time values
+		(null,#{name},#{start_time},#{end_time},#{exam_modelid},#{insert_time},#{show_notice},#{notice_title},#{notice_msg})
+	</insert>
+	
+	
+	<!-- 根据考试id  获取当前考卷信息
+	public ExamTime getExamTimeById(int id); -->
+	<select id="getExamTimeById" parameterType="java.lang.Integer" resultMap="resExamTime">
+		select * from tb_exam_time where uuid = #{id }
+	</select>
+	
+</mapper>

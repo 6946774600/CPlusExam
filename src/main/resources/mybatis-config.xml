@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "mybatis-3-config.dtd" >
+<configuration>
+
+<settings>
+	<!-- 驼峰命名法 -->
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
+	
+	<typeAliases>
+	<!-- 配置bean包下的别名的引用 -->
+		<package name="com.cplusexam.bean.system"/>
+		<package name="com.cplusexam.bean.util"/>
+		<package name="com.cplusexam.bean.Item"/>
+		<package name="com.cplusexam.bean.teacher"/>
+		<package name="com.cplusexam.bean.exam"/>
+		<package name="com.cplusexam.bean.student"/>
+	</typeAliases>
+	
+	<!-- 注册mybatis的分页插件PageHelper -->
+	
+	<!-- 
+    plugins在配置文件中的位置必须符合要求，否则会报错，顺序如下:
+    properties?, settings?, 
+    typeAliases?, typeHandlers?, 
+    objectFactory?,objectWrapperFactory?, 
+    plugins?, 
+    environments?, databaseIdProvider?, mappers?
+	-->
+	<plugins>
+    	<!-- com.github.pagehelper为PageHelper类所在包名 -->
+    	<plugin interceptor="com.github.pagehelper.PageInterceptor">
+        	<!-- 使用下面的方式配置参数，后面会有所有的参数介绍 -->
+        	<!-- 分页数据合理化配置 -->
+        	<property name="reasonable" value="true"/> 
+		</plugin>
+	</plugins>
+
+</configuration>
